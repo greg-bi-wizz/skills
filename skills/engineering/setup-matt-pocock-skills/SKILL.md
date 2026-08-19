@@ -1,6 +1,6 @@
 ---
 name: setup-matt-pocock-skills
-description: "Configure this repo for the engineering skills: set up its issue tracker, triage label vocabulary, and domain doc layout. Run once before first use of the other engineering skills."
+description: "Configure this repo for the engineering skills: set up its issue tracker, triage label vocabulary, domain doc layout, and the SDLC pipeline (backlog → requirements → design → tickets, with risk-based process weight). Run once before first use of the other engineering skills."
 disable-model-invocation: true
 ---
 
@@ -10,7 +10,8 @@ Scaffold the per-repo configuration that the engineering skills assume:
 
 - **Issue tracker**: where issues live (GitHub by default; local markdown is also supported out of the box)
 - **Triage labels**: the strings used for the five canonical triage roles
-- **Domain docs**: where `CONTEXT.md` and ADRs live, and the consumer rules for reading them
+- **Domain docs**: where `CONTEXT.md` and design decisions (ADRs) live, and the consumer rules for reading them
+- **SDLC pipeline**: the `docs/backlog/` → `docs/requirements/` → `docs/design/` → tickets flow, the risk classes that scale process weight, and (optionally) the risk-based agent team
 
 This is a prompt-driven skill, not a deterministic script. Explore, present what you found, confirm with the user, then write.
 
@@ -56,16 +57,34 @@ If it is installed, ask exactly one question:
 
 The defaults are the five canonical roles, each label string equal to its name: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. On **yes**, write them as-is. Only if the user says no, usually because their tracker already uses other names (e.g. `bug:triage` for `needs-triage`), collect the overrides so `triage` applies existing labels instead of creating duplicates.
 
-**Section C: Domain docs.** Default to **single-context** (one `CONTEXT.md` + `docs/adr/` at the repo root). This fits almost every repo; write it without asking.
+**Section C: Domain docs.** Default to **single-context** (one `CONTEXT.md` + `docs/design/` at the repo root). This fits almost every repo; write it without asking.
 
 Offer **multi-context** (a root `CONTEXT-MAP.md` pointing to per-context `CONTEXT.md` files) only when exploration found monorepo signals. Then confirm which layout they want.
+
+**Section D: SDLC pipeline.** Default to **installing the full pipeline**; write it without asking unless the user has existing docs that would need migrating (in which case, stop and propose the migration instead of scaffolding over it).
+
+> Explainer: the SDLC pipeline keeps four artifact layers, each traceable to the previous: `docs/backlog/` holds the owner's private, unprocessed ideas (agents never read or process it); `docs/requirements/` holds promoted requirements, one file per requirement with platform applicability declared inside; `docs/design/` holds design decisions, one ADR per decision, each tracing to its requirement; tickets (on the tracker from Section A) carry a `Design:`/`Requirement:` trace and a `risk:` class. The risk class scales process weight — cheap for low-risk work, full rigor for auth/migration/data work.
+
+Scaffold:
+
+- `docs/backlog/my-notes.md` and `docs/backlog/new features.md` as seeds (two-line stubs: "Owner's private notes. Agents never process this file.")
+- `docs/requirements/` and `docs/requirements/done/` (with a `.gitkeep` or short README in each)
+- `docs/design/` and `docs/design/done/`
+- `docs/agents/sdlc.md` from the [sdlc.md](./sdlc.md) seed: records the pipeline, the id schemes (`REQ-NNN`, `ADR-NNNN`), the done-archive convention, and the risk-class table
+
+Then ask one question:
+
+> Do you want the risk-based agent team scaffolded into `agents/`? (recommended: **yes**)
+
+On yes, copy the generic agent definitions from this skill's [agents/](./agents/) folder into the repo's `agents/` directory: `implementer.md` (every ticket, TDD), `reviewer.md` (R2+), `adversary.md` + `qa.md` (R3, on demand), and `ticket-template.md`. These are tool-agnostic prompts — wiring them into a specific harness (Claude Code, OpenCode, pi) is the repo's own business, so say so and stop there. On no, skip it; the skills' ticket templates still carry `risk:` and the user drives execution themselves.
 
 ### 3. Confirm and edit
 
 Show the user a draft of:
 
 - The `## Agent skills` block to add to whichever of `CLAUDE.md` / `AGENTS.md` is being edited (see step 4 for selection rules)
-- The contents of `docs/agents/issue-tracker.md`, `docs/agents/domain.md`, and `docs/agents/triage-labels.md` (the last only when `triage` is installed)
+- The contents of `docs/agents/issue-tracker.md`, `docs/agents/domain.md`, `docs/agents/sdlc.md`, and `docs/agents/triage-labels.md` (the last only when `triage` is installed)
+- The directory skeleton Section D creates, when it ran
 
 Let them edit before writing.
 
@@ -97,9 +116,13 @@ The block:
 ### Domain docs
 
 [one-line summary of layout: "single-context" or "multi-context"]. See `docs/agents/domain.md`.
+
+### SDLC pipeline
+
+backlog (docs/backlog/, owner-private) → requirements (docs/requirements/, REQ-NNN) → design (docs/design/, ADR-NNNN) → tickets with risk classes. See `docs/agents/sdlc.md`.
 ```
 
-Include the `### Triage labels` sub-block, and write `docs/agents/triage-labels.md`, only when `triage` is installed and Section B ran. When it isn't, both are omitted.
+Include the `### Triage labels` sub-block, and write `docs/agents/triage-labels.md`, only when `triage` is installed and Section B ran. When it isn't, both are omitted. The `### SDLC pipeline` sub-block is included whenever Section D ran.
 
 Then write the docs files using the seed templates in this skill folder as a starting point:
 
@@ -108,6 +131,7 @@ Then write the docs files using the seed templates in this skill folder as a sta
 - [issue-tracker-local.md](./issue-tracker-local.md): local-markdown issue tracker
 - [triage-labels.md](./triage-labels.md): label mapping (only if `triage` is installed)
 - [domain.md](./domain.md): domain doc consumer rules + layout
+- [sdlc.md](./sdlc.md): the SDLC pipeline record (when Section D ran)
 
 For "other" issue trackers, write `docs/agents/issue-tracker.md` from scratch using the user's description.
 

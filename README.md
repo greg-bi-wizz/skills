@@ -10,6 +10,43 @@
 
 # Skills For Real Engineers
 
+> **This is a fork** — [greg-bi-wizz/skills](https://github.com/greg-bi-wizz/skills), forked from
+> [mattpocock/skills](https://github.com/mattpocock/skills). It carries my SDLC on top of Matt's
+> skills. Sync strategy: `git fetch upstream && git merge upstream/main`, resolving conflicts in
+> the divergent skills below. Everything not listed is upstream as-is.
+
+## What this fork changes
+
+The fork implements an opinionated SDLC pipeline — **backlog → requirements → design →
+> tickets**, with risk-proportional process weight:
+
+| Skill | Divergence |
+|---|---|
+| `to-requirement` | **New.** Promotes an idea/backlog item into `docs/requirements/REQ-NNN-*.md`: one file per requirement, platform applicability and per-platform variants inside the file, cross-references by id. |
+| `to-design` | **New** (derived from upstream `to-spec`). Turns a requirement into design docs: one ADR per decision at `docs/design/ADR-NNNN-*.md`, each with a `Requirements:` trace. |
+| `to-tickets` | **Modified.** Source is a design doc; every ticket carries a `Source:` trace (`Design: ADR-NNNN`, `Requirement: REQ-NNN`) and a `risk: R1\|R2\|R3` class that scales downstream process weight. |
+| `setup-matt-pocock-skills` | **Modified.** New Section D scaffolds the docs layout (`docs/backlog/`, `docs/requirements/` + `done/`, `docs/design/` + `done/`), writes `docs/agents/sdlc.md`, and can scaffold a risk-based agent team (implementer / reviewer / adversary / qa + ticket template) into `agents/`. |
+| `domain.md` seed | ADRs live at `docs/design/` (not `docs/adr/`). |
+
+Docs layout per repo (scaffolded by setup):
+
+```
+docs/
+├── backlog/        # owner-private: my-notes.md, new features.md — agents never process
+├── requirements/   # REQ-NNN-slug.md, one per requirement (+ done/ archive)
+└── design/         # ADR-NNNN-slug.md, one per decision (+ done/ archive)
+```
+
+Risk classes (assigned on the ticket at creation; unsure → R2):
+
+| Class | What | Process |
+|---|---|---|
+| R1 | UI polish, copy, display-only — owner verifies at a glance | implementer + owner eyeballs |
+| R2 | routes, features, schema adds, timing/rounding | implementer + reviewer |
+| R3 | auth, tenancy, migration, export/import, secrets | implementer + reviewer + adversary ∥ qa |
+
+---
+
 [![skills.sh](https://skills.sh/b/mattpocock/skills)](https://skills.sh/mattpocock/skills)
 
 My agent skills that I use every day to do real engineering - not vibe coding.
